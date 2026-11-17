@@ -1,5 +1,5 @@
 /* Interactive drawings v3 — clean line-art replicas of the OEM sheets
-   with tappable hotspots. Primary P&ID: Vol. VI p. 359, OM 1, Fig. 2-1.
+   with tappable hotspots.
    Names come from the source legend or parts list (page cited).
    If the manual has no description, the sheet says so — nothing is invented. */
 window.CGDRAW = (function(){
@@ -8,7 +8,7 @@ window.CGDRAW = (function(){
 
   const FIG21 = {
   "id": "fig21",
-  "title": "Fig. 2-1 Configuración del sistema",
+  "title": "Sistema de purificación",
   "cite": "Vol. VI p. 359, Operation Manual 1, Fig. 2-1 (página impresa 2-1)",
   "image": "assets/diagrams/fig21.png",
   "display": [
@@ -585,7 +585,7 @@ window.CGDRAW = (function(){
   "fig21": {
     "id": "fig21",
     "section": "s11",
-    "title": "Fig. 2-1 Sistema (OM 1)",
+    "title": "Sistema de purificación",
     "cite": "Vol. VI p. 359, Operation Manual 1, Fig. 2-1 (página impresa 2-1)",
     "image": "assets/diagrams/fig21.png",
     "primary": true

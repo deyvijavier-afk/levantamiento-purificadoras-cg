@@ -145,7 +145,7 @@ window.CGDATA = {
     {
       "id": "s11",
       "title": "1. Instalación física — 1.1 Tuberías e instrumentación",
-      "intro": "Verificar en campo cada boquilla, línea, válvula e instrumento. La planta estuvo parada más de diez años: es previsible que falten tramos, instrumentos o que se hayan canibalizado piezas entre las dos unidades. Las boquillas N-1 a N-11 y los tanques nombrados salen de los diagramas de flujo de cada unidad. La interfaz hacia motores (bomba de suministro HFO, booster, filtro automático, viscosímetro) sale del P&ID de planta del Vol. V. No se encontró un P&ID general de tanques de planta en la carpeta Zanzibar; los nombres de tanques se toman de las tablas de conexiones del Vol. VI.",
+      "intro": "Verificar en campo cada boquilla, línea, válvula e instrumento. La planta estuvo parada más de diez años: es previsible que falten tramos, instrumentos o que se hayan canibalizado piezas entre las dos unidades. Las boquillas N-1 a N-11 y los tanques nombrados salen de los diagramas de flujo de cada unidad. La interfaz hacia motores (bomba de suministro HFO, booster, filtro automático, viscosímetro) sale del P&ID de planta. Confirmar en sitio los nombres y la existencia de los tanques.",
       "groups": [
         {
           "title": "Interfaz de proceso — boquillas de cada unidad",
@@ -389,7 +389,7 @@ window.CGDATA = {
     {
       "id": "s12",
       "title": "1. Instalación física — 1.2 Mecánica (la purificadora y sus elementos)",
-      "intro": "Recorrer el equipo de fuera hacia adentro. Registrar números de serie (no figuran en las portadas ni en las primeras hojas de inspección del Vol. VI). Buscar indicios de canibalización entre las dos máquinas (piezas, discos, bombas, sensores o tapas intercambiadas).",
+      "intro": "Recorrer el equipo de fuera hacia adentro. Registrar números de serie en la placa. Buscar indicios de canibalización entre las dos máquinas (piezas, discos, bombas, sensores o tapas intercambiadas).",
       "groups": [
         {
           "title": "Identificación y bancada",
@@ -510,7 +510,7 @@ window.CGDATA = {
     {
       "id": "s13",
       "title": "1. Instalación física — 1.3 Eléctrico (potencia y control)",
-      "intro": "HFO opera con panel / funciones GSH-1 (HIDENS, descarga total y parcial) y el paquete declara control GBC-1 y GSH-1 (MM p. 599–600; OM3 p. 528–594). LO es tipo G, total only, asociado a GBC-1. Tensión de alimentación del diagrama: AC 480 V, 60 Hz, 3 fases (p. 9).",
+      "intro": "HFO opera con panel / funciones GSH-1 (HIDENS, descarga total y parcial) y el paquete declara control GBC-1 y GSH-1. LO es tipo G, total only, asociado a GBC-1. Tensión de alimentación del diagrama: AC 480 V, 60 Hz, 3 fases.",
       "groups": [
         {
           "title": "Potencia",
@@ -669,7 +669,7 @@ window.CGDATA = {
     {
       "id": "s5",
       "title": "5. Servicios disponibles para ejecutar el overhaul",
-      "intro": "Sin estos servicios no se puede programar el trabajo con certeza. Caudales de agua, aire y vapor de las unidades: Vol. VI p. 230–231. Izaje y área: criterio técnico.",
+      "intro": "Sin estos servicios no se puede programar el trabajo con certeza. Confirmar caudales de agua, aire y vapor, izaje y área de trabajo.",
       "items": [
         {
           "id": "srv_w",
@@ -679,7 +679,7 @@ window.CGDATA = {
         },
         {
           "id": "srv_air",
-          "label": "Aire seco a 5,0–9,0 kg/cm² en N-7 (0,4 NL/h de diseño). El Vol. V incluye compresor y secador a partir de p. 531.",
+          "label": "Aire seco a 5,0–9,0 kg/cm² en N-7 (0,4 NL/h de diseño). Confirmar si la planta tiene compresor y secador.",
           "cite": "Vol. VI p. 230–231; Vol. V p. 531–613",
           "kind": "single"
         },
@@ -691,7 +691,7 @@ window.CGDATA = {
         },
         {
           "id": "srv_pwr",
-          "label": "Energía 480 V / 60 Hz / 3Ph estable para pruebas de arranque (≤ 6 min, Vol. VI p. 226)",
+          "label": "Energía 480 V / 60 Hz / 3Ph estable para pruebas de arranque (≤ 6 min de diseño)",
           "cite": "Vol. VI p. 9 y p. 226",
           "kind": "single"
         },
@@ -729,7 +729,7 @@ window.CGDATA = {
             },
             {
               "id": "srv_air",
-              "label": "Aire seco a 5,0–9,0 kg/cm² en N-7 (0,4 NL/h de diseño). El Vol. V incluye compresor y secador a partir de p. 531.",
+              "label": "Aire seco a 5,0–9,0 kg/cm² en N-7 (0,4 NL/h de diseño). Confirmar si la planta tiene compresor y secador.",
               "cite": "Vol. VI p. 230–231; Vol. V p. 531–613",
               "kind": "single"
             },
@@ -741,7 +741,7 @@ window.CGDATA = {
             },
             {
               "id": "srv_pwr",
-              "label": "Energía 480 V / 60 Hz / 3Ph estable para pruebas de arranque (≤ 6 min, Vol. VI p. 226)",
+              "label": "Energía 480 V / 60 Hz / 3Ph estable para pruebas de arranque (≤ 6 min de diseño)",
               "cite": "Vol. VI p. 9 y p. 226",
               "kind": "single"
             },

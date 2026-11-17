@@ -328,7 +328,7 @@ function renderSection(sid, view, dwg, groupFilter, onlyPend){
 
   const viewChips = tile.hasPlan ? `<div class="chip-row">
     ${sid==="s11"?`
-      <button class="chip ${dwg==="fig21"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/fig21">Fig. 2-1 sistema</button>
+      <button class="chip ${dwg==="fig21"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/fig21">Sistema de purificación</button>
       <button class="chip ${dwg==="hdzzb01"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb01">Flujo HFO</button>
       <button class="chip ${dwg==="hdzzb03"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb03">Flujo LO</button>`:""}
     ${sid==="s3"?`

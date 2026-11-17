@@ -1,4 +1,4 @@
-const CACHE = "cg-levantamiento-v5-3";
+const CACHE = "cg-levantamiento-v5-4";
 const ASSETS = [
   "./",
   "./index.html",
