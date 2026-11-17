@@ -1,0 +1,132 @@
+const CACHE = "cg-levantamiento-v4-1";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./css/app.css",
+  "./js/data.js",
+  "./js/drawings.js",
+  "./js/legends.js",
+  "./js/app.js",
+  "./icons/apple-touch-icon.png",
+  "./icons/favicon-32.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-maskable-512.png",
+  "./assets/diagrams/booster.png",
+  "./assets/diagrams/bowl-parts.jpg",
+  "./assets/diagrams/bowl-sectional.jpg",
+  "./assets/diagrams/bowl_asm.png",
+  "./assets/diagrams/bowl_list.png",
+  "./assets/diagrams/fig21.png",
+  "./assets/diagrams/flow-hfo.jpg",
+  "./assets/diagrams/flow-lo.jpg",
+  "./assets/diagrams/frame_asm.png",
+  "./assets/diagrams/frame_list1.png",
+  "./assets/diagrams/frame_list2.png",
+  "./assets/diagrams/hdzzb01.png",
+  "./assets/diagrams/hdzzb03.png",
+  "./assets/diagrams/hshaft_asm.png",
+  "./assets/diagrams/hshaft_list.png",
+  "./assets/diagrams/pump_asm.png",
+  "./assets/diagrams/pump_list.png",
+  "./assets/diagrams/tools/801.png",
+  "./assets/diagrams/tools/802.png",
+  "./assets/diagrams/tools/803.png",
+  "./assets/diagrams/tools/804.png",
+  "./assets/diagrams/tools/805.png",
+  "./assets/diagrams/tools/807.png",
+  "./assets/diagrams/tools/808.png",
+  "./assets/diagrams/tools/809.png",
+  "./assets/diagrams/tools/810.png",
+  "./assets/diagrams/tools/811.png",
+  "./assets/diagrams/tools/812.png",
+  "./assets/diagrams/tools/813.png",
+  "./assets/diagrams/tools/814.png",
+  "./assets/diagrams/tools/815.png",
+  "./assets/diagrams/tools/816.png",
+  "./assets/diagrams/tools/817.png",
+  "./assets/diagrams/tools/818.png",
+  "./assets/diagrams/tools/819.png",
+  "./assets/diagrams/tools/820.png",
+  "./assets/diagrams/tools/821.png",
+  "./assets/diagrams/tools/823.png",
+  "./assets/diagrams/tools/full/hfo/801.png",
+  "./assets/diagrams/tools/full/hfo/802.png",
+  "./assets/diagrams/tools/full/hfo/803.png",
+  "./assets/diagrams/tools/full/hfo/804.png",
+  "./assets/diagrams/tools/full/hfo/805.png",
+  "./assets/diagrams/tools/full/hfo/807.png",
+  "./assets/diagrams/tools/full/hfo/808.png",
+  "./assets/diagrams/tools/full/hfo/809.png",
+  "./assets/diagrams/tools/full/hfo/810.png",
+  "./assets/diagrams/tools/full/hfo/811.png",
+  "./assets/diagrams/tools/full/hfo/812.png",
+  "./assets/diagrams/tools/full/hfo/813.png",
+  "./assets/diagrams/tools/full/hfo/814.png",
+  "./assets/diagrams/tools/full/hfo/815.png",
+  "./assets/diagrams/tools/full/hfo/816.png",
+  "./assets/diagrams/tools/full/hfo/817.png",
+  "./assets/diagrams/tools/full/hfo/818.png",
+  "./assets/diagrams/tools/full/hfo/819.png",
+  "./assets/diagrams/tools/full/hfo/820.png",
+  "./assets/diagrams/tools/full/hfo/821.png",
+  "./assets/diagrams/tools/full/hfo/823.png",
+  "./assets/diagrams/tools/full/lo/801.png",
+  "./assets/diagrams/tools/full/lo/802.png",
+  "./assets/diagrams/tools/full/lo/803.png",
+  "./assets/diagrams/tools/full/lo/804.png",
+  "./assets/diagrams/tools/full/lo/805.png",
+  "./assets/diagrams/tools/full/lo/807.png",
+  "./assets/diagrams/tools/full/lo/808.png",
+  "./assets/diagrams/tools/full/lo/809.png",
+  "./assets/diagrams/tools/full/lo/810.png",
+  "./assets/diagrams/tools/full/lo/811.png",
+  "./assets/diagrams/tools/full/lo/812.png",
+  "./assets/diagrams/tools/full/lo/813.png",
+  "./assets/diagrams/tools/full/lo/814.png",
+  "./assets/diagrams/tools/full/lo/815.png",
+  "./assets/diagrams/tools/full/lo/816.png",
+  "./assets/diagrams/tools/full/lo/817.png",
+  "./assets/diagrams/tools/full/lo/818.png",
+  "./assets/diagrams/tools/full/lo/819.png",
+  "./assets/diagrams/tools/full/lo/820.png",
+  "./assets/diagrams/tools/full/lo/821.png",
+  "./assets/diagrams/tools/full/lo/823.png",
+  "./assets/diagrams/tools-261.jpg",
+  "./assets/diagrams/tools-262.jpg",
+  "./assets/diagrams/tools-263.jpg",
+  "./assets/diagrams/tools_hfo_1.png",
+  "./assets/diagrams/tools_hfo_2.png",
+  "./assets/diagrams/tools_hfo_3.png",
+  "./assets/diagrams/tools_hfo_cover.png",
+  "./assets/diagrams/tools_lo_1.png",
+  "./assets/diagrams/tools_lo_2.png",
+  "./assets/diagrams/tools_lo_3.png",
+  "./assets/diagrams/tools_lo_cover.png",
+  "./assets/diagrams/vshaft_asm.png",
+  "./assets/diagrams/water-distributor.jpg",
+  "./assets/diagrams/water_list.png"
+];
+self.addEventListener("install", e=>{
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
+});
+self.addEventListener("activate", e=>{
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener("fetch", e=>{
+  const req=e.request;
+  if(req.method!=="GET") return;
+  e.respondWith(
+    caches.match(req).then(cached=>{
+      if(cached) return cached;
+      return fetch(req).then(res=>{
+        const copy=res.clone();
+        if(res.ok && (new URL(req.url).origin===location.origin)){
+          caches.open(CACHE).then(c=>c.put(req, copy));
+        }
+        return res;
+      }).catch(()=>cached);
+    })
+  );
+});
