@@ -883,8 +883,12 @@ window.CGDRAW = (function(){
     } else {
       img=d.image; cite=d.cite; title=d.title; hots=d.hots||[];
     }
-    const pager = pages && pages.length>1 ? `<div class="chip-row" data-pager="${esc(id)}">
-      ${pages.map((p,i)=>`<button type="button" class="chip ${i===idx?"on":""}" data-page="${i}">${esc(p.title)}</button>`).join("")}
+    const pager = pages && pages.length>1 ? `<div class="chip-row pager" data-pager="${esc(id)}">
+      ${pages.map((p,i)=>{
+        const m=String(p.title||"").match(/(\d+\s*\/\s*\d+)/);
+        const lab=m?m[1].replace(/\s+/g,""):(p.title||String(i+1));
+        return `<button type="button" class="chip ${i===idx?"on":""}" data-page="${i}" aria-label="${esc(p.title||lab)}">${esc(lab)}</button>`;
+      }).join("")}
     </div>` : "";
     const btns=hots.map(h=>hotBtn(h, unit)).join("");
     const stage=`<div class="draw-wrap" data-dwg="${esc(id)}" data-page="${idx}">

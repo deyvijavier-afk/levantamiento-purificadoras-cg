@@ -333,3 +333,6 @@ details.intro p{margin:.4rem 0 0}
 .tool-card.na-card{min-height:0}
 
 .faltante .sub{font-size:.75rem;color:var(--muted);margin:.1rem 0 0}
+
+.chip-row.pager{flex-wrap:wrap;overflow:visible}
+.chip-row.pager .chip{min-width:44px;justify-content:center}

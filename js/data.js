@@ -127,39 +127,11 @@ window.CGDATA = {
       "hasPlan": true
     },
     {
-      "id": "s4",
-      "title": "4. Sitio y LOTO",
-      "short": "LOTO",
-      "blurb": "Permisos, aislamiento y condiciones de acceso.",
-      "icon": "safety"
-    },
-    {
       "id": "s5",
       "title": "5. Servicios",
       "short": "Servicios",
       "blurb": "Agua, aire, vapor, 480 V, izaje y área de trabajo.",
       "icon": "plug"
-    },
-    {
-      "id": "s6",
-      "title": "6. Consumibles",
-      "short": "Consumibles",
-      "blurb": "Molycoat, aceite, limpieza y juntas de brida.",
-      "icon": "flask"
-    },
-    {
-      "id": "s7",
-      "title": "7. Documentación",
-      "short": "Documentos",
-      "blurb": "Manuales en planta, historial y gravity disc.",
-      "icon": "doc"
-    },
-    {
-      "id": "s8",
-      "title": "8. Preguntas al cliente",
-      "short": "Preguntas",
-      "blurb": "Ubicación de herramientas, canibalización, alcance.",
-      "icon": "help"
     },
     {
       "id": "s9",
@@ -408,47 +380,6 @@ window.CGDATA = {
               "id": "pg_sl_out",
               "label": "4-6 / 4-11 Manómetro descarga bomba de lodos",
               "cite": "Sigma SG-2000, 0–4 kg/cm², consigna 0–2. HFO 4-6; LO 4-11. p. 132.",
-              "kind": "dual"
-            }
-          ]
-        },
-        {
-          "title": "Interfaz de planta",
-          "items": [
-            {
-              "id": "hfo_sup_pump",
-              "label": "Bomba de suministro HFO (HFO supply pump) — succión desde tanque de servicio, descarga al booster",
-              "cite": "Vol. V p. 15 (P&ID, línea «FR HFO SUPPLY PUMP», JS 10K-40A) y sección 2 a partir de p. 387. Solo lado HFO; en LO marcar N/A o describir si existe bomba análoga de aceite limpio (no aparece en el P&ID del booster).",
-              "kind": "dual"
-            },
-            {
-              "id": "booster",
-              "label": "Módulo HFO booster: bombas, calentador, viscosímetro VST, filtro automático 34 µm, tubería a motores",
-              "cite": "Vol. V p. 15, «H.F.O. BOOSTER UNIT», Industria Vidrio Zanzibar S.A., 4.7 MW, Final dwg. Conexión «TO MAIN ENGINE». Bomba 3,2 m³/h × 8,0 kg/cm². Verificar integridad del skid (planta parada >10 años). Lo esencial para programar el overhaul de las purificadoras es que existan las líneas de succión/descarga y vapor/aire; el overhaul del booster no forma parte de este alcance salvo como interfaz.",
-              "kind": "dual"
-            },
-            {
-              "id": "fo_drain",
-              "label": "Tanque / líneas de drenaje de combustible (TO F.O. DRAIN TK)",
-              "cite": "Vol. V p. 15, líneas A/C/D en la tabla de tuberías del P&ID.",
-              "kind": "dual"
-            },
-            {
-              "id": "steam_plant",
-              "label": "Suministro de vapor y retorno de condensado de planta hacia calentadores (unidades y booster)",
-              "cite": "Vol. V p. 15 (STEAM IN / STEAM CONDENSATE) y Vol. VI p. 230–231.",
-              "kind": "dual"
-            },
-            {
-              "id": "air_plant",
-              "label": "Red de aire comprimido / aire de control hasta las unidades y el booster",
-              "cite": "Vol. V p. 15 (COMP. AIR IN, CONTROL AIR) y Vol. VI N-7.",
-              "kind": "dual"
-            },
-            {
-              "id": "exp_tank",
-              "label": "Tanque de expansión HT/LT (0,2 m³) y acometidas de agua de refrigeración a motores",
-              "cite": "Vol. V p. 15 y sección 3 a partir de p. 429. No es parte de las purificadoras; se anota como servicio de planta vecino. Si no se inspecciona, marcar N/A e indicar motivo.",
               "kind": "dual"
             }
           ]

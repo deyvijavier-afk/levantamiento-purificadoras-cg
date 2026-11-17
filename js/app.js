@@ -1,4 +1,4 @@
-/* Levantamiento v3 — app shell (dark, Tahoma, Fig. 2-1), hash routes, one section at a time */
+/* Levantamiento v5 — app shell (dark, Tahoma, Fig. 2-1), hash routes, one section at a time */
 (function(){
 "use strict";
 const D = window.CGDATA;
@@ -179,6 +179,13 @@ function parseHash(){
   const parts=(h.split("?")[0]||"/").split("/").filter(Boolean);
   return {parts, q, path:"/"+parts.join("/")};
 }
+function toolsDwg(){ return unit==="lo"?"tools_lo":"tools_hfo"; }
+function dwgFamily(id){ return (id==="tools"||id==="tools_hfo"||id==="tools_lo") ? "tools" : id; }
+let dwgPage=0, dwgFam="";
+function setDwgContext(id, keepPage){
+  const fam=dwgFamily(id);
+  if(fam!==dwgFam){ if(!keepPage) dwgPage=0; dwgFam=fam; }
+}
 function go(path){
   const hash=path.startsWith("#")?path:("#"+path);
   if(modalDepth>0 || sheetIsOn() || lbIsOn()){
@@ -306,8 +313,11 @@ function renderSection(sid, view, dwg, groupFilter, onlyPend){
     if(!dwg){
       if(sid==="s11") dwg = "fig21";
       else if(sid==="s12") dwg="bowl";
-      else if(sid==="s3") dwg = unit==="lo"?"tools_lo":"tools_hfo";
+      else if(sid==="s3") dwg = toolsDwg();
     }
+    if(dwg==="booster") dwg="fig21";
+    if(dwg==="tools") dwg=toolsDwg();
+    setDwgContext(dwg);
   }
   const p=progressOf(sid);
   const groups=sectionGroups(sid);
@@ -320,8 +330,7 @@ function renderSection(sid, view, dwg, groupFilter, onlyPend){
     ${sid==="s11"?`
       <button class="chip ${dwg==="fig21"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/fig21">Fig. 2-1 sistema</button>
       <button class="chip ${dwg==="hdzzb01"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb01">Flujo HFO</button>
-      <button class="chip ${dwg==="hdzzb03"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb03">Flujo LO</button>
-      <button class="chip ${dwg==="booster"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/booster">P&amp;ID booster</button>`:""}
+      <button class="chip ${dwg==="hdzzb03"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb03">Flujo LO</button>`:""}
     ${sid==="s3"?`
       <button class="chip ${view!=="plano"?"on":""}" data-go="#/seccion/s3">Tarjetas</button>
       <button class="chip ${dwg===(unit==="lo"?"tools_lo":"tools_hfo")&&view==="plano"?"on":""}" data-go="#/seccion/s3/plano/${unit==="lo"?"tools_lo":"tools_hfo"}">Lista</button>`:""}
@@ -348,7 +357,7 @@ function renderSection(sid, view, dwg, groupFilter, onlyPend){
         <label class="toggle"><input type="checkbox" id="onlyPend" ${onlyPend?"checked":""}> Solo pendientes / faltantes</label>
       </div>
       ${view==="lista"?chips:""}
-      <div id="sec-body">${body}</div>
+      <div id="sec-body"><div id="dwg-root">${body}</div></div>
       <div class="nav-sec">
         <button type="button" ${prev?`data-go="#/seccion/${prev}"`:"disabled"}>${prev?"← "+(D.TILES.find(t=>t.id===prev)||{}).short:""}</button>
         <button type="button" ${next?`data-go="#/seccion/${next}"`:"disabled"}>${next?(D.TILES.find(t=>t.id===next)||{}).short+" →":""}</button>
@@ -480,7 +489,7 @@ function itemCard(it){
 /* ---------- drawing ---------- */
 function drawingHTML(dwg, onlyPend, pageIdx){
   const meta=DW.CATALOG[dwg];
-  const parts=DW.render(dwg, unit, pageIdx||0);
+  const parts=DW.render(dwg, unit, (pageIdx==null?dwgPage:pageIdx)||0);
   const chrome=parts.chrome||"", stage=parts.stage||"", below=parts.below||"";
   const ids=DW.idsIn(dwg, unit).map(resolveId);
   const tot=ids.length;
@@ -552,19 +561,22 @@ function bindDrawingClicks(vp){
     tr.addEventListener("click", ()=> openFrom(tr));
   });
   vp.querySelectorAll("[data-z]").forEach(b=> b.addEventListener("click",()=>vp._zoom(b.dataset.z)));
-  document.querySelectorAll("[data-pager] [data-page]").forEach(b=>{
-    b.addEventListener("click",()=>{
-      const id=b.closest("[data-pager]").dataset.pager;
-      const wrap=document.querySelector("#sec-body");
-      if(!wrap) return;
-      const onlyPend=document.getElementById("onlyPend")?.checked;
-      wrap.innerHTML=drawingHTML(id, onlyPend, +b.dataset.page);
-      const nvp=document.getElementById("svg-vp");
-      paintDrawing(nvp, onlyPend);
-      enablePanZoom(nvp);
-      bindDrawingClicks(nvp);
-    });
-  });
+}
+function drawingHost(){
+  return document.getElementById("dwg-root") || document.getElementById("sec-body");
+}
+function showDrawingPage(catalogId, page, onlyPend){
+  const id = (catalogId==="tools") ? toolsDwg() : catalogId;
+  dwgPage = +page||0;
+  setDwgContext(id, true);
+  const host=drawingHost();
+  if(!host) return false;
+  host.innerHTML=drawingHTML(id, onlyPend, dwgPage);
+  const nvp=document.getElementById("svg-vp");
+  paintDrawing(nvp, onlyPend);
+  enablePanZoom(nvp);
+  bindDrawingClicks(nvp);
+  return true;
 }
 
 function enablePanZoom(vp){
@@ -828,22 +840,34 @@ function bindPhotos(){
 
 /* ---------- resumen / diagramas ---------- */
 function renderDiagramas(dwg){
+  if(dwg==="booster"){ go("#/diagramas"); return; }
+  const isTools = dwg==="tools" || dwg==="tools_hfo" || dwg==="tools_lo";
+  if(isTools) dwg = toolsDwg();
   if(dwg && DW.CATALOG[dwg]){
+    setDwgContext(dwg);
     const meta=DW.CATALOG[dwg];
+    const title = isTools ? "Herramientas especiales" : meta.title;
     document.getElementById("app").innerHTML =
-      topbar({title:meta.title, kicker:"Diagramas", back:"#/diagramas"})+unitBar(true)+
-      `<div class="main"><div class="pad">${drawingHTML(dwg,false)}</div></div>`+
+      topbar({title:title, kicker:"Diagramas", back:"#/diagramas"})+unitBar(true)+
+      `<div class="main"><div class="pad"><div id="dwg-root">${drawingHTML(dwg,false,dwgPage)}</div></div></div>`+
       tabbar("diagramas")+sheetHTML()+lightboxHTML();
     paintDrawing(document.getElementById("svg-vp"));
     enablePanZoom(document.getElementById("svg-vp"));
     bindDrawingClicks(document.getElementById("svg-vp"));
     return;
   }
-  const cards=Object.values(DW.CATALOG).map(d=>`
+  dwgFam=""; dwgPage=0;
+  const skip=new Set(["booster","tools_hfo","tools_lo"]);
+  const list=Object.values(DW.CATALOG).filter(d=>d && d.id && !skip.has(d.id));
+  const cards=list.map(d=>`
     <button type="button" class="tile" data-go="#/diagramas/${d.id}">
       <span class="ico">${ICO.draw}</span>
       <h2>${esc(d.title)}</h2>
-    </button>`).join("");
+    </button>`).join("")+`
+    <button type="button" class="tile" data-go="#/diagramas/tools">
+      <span class="ico">${ICO.draw}</span>
+      <h2>Herramientas especiales</h2>
+    </button>`;
   document.getElementById("app").innerHTML =
     topbar({title:"Diagramas interactivos", kicker:"Caribbean Glass  ·  Samgong SELFJECTOR"})+
     `<div class="main"><div class="pad">
@@ -974,10 +998,35 @@ function route(){
 }
 
 document.addEventListener("click", ev=>{
+  const pageBtn=ev.target.closest("[data-page]");
+  if(pageBtn && pageBtn.closest("[data-pager]")){
+    ev.preventDefault();
+    ev.stopPropagation();
+    const id=pageBtn.closest("[data-pager]").dataset.pager;
+    showDrawingPage(id, pageBtn.dataset.page, document.getElementById("onlyPend")?.checked);
+    return;
+  }
   const goEl=ev.target.closest("[data-go]");
   if(goEl && goEl.getAttribute("data-go") && !goEl.disabled){ ev.preventDefault(); go(goEl.getAttribute("data-go")); return; }
   const u=ev.target.closest("[data-unit]");
-  if(u){ unit=u.dataset.unit; save(); route(); return; }
+  if(u){
+    unit=u.dataset.unit; save();
+    const r=parseHash();
+    if(r.parts[0]==="diagramas" && r.parts[1] && (r.parts[1]==="tools"||r.parts[1]==="tools_hfo"||r.parts[1]==="tools_lo")){
+      const next="#/diagramas/tools";
+      if((location.hash||"")===next || (location.hash||"")==="#diagramas/tools"){ route(); }
+      else go(next);
+      return;
+    }
+    if(r.parts[0]==="seccion" && r.parts[1]==="s3" && r.parts[2]==="plano"){
+      const next="#/seccion/s3/plano/"+toolsDwg();
+      if((location.hash||"")===next){ route(); }
+      else go(next);
+      return;
+    }
+    route();
+    return;
+  }
   const est=ev.target.closest("[data-est-for]");
   if(est){
     const id=est.dataset.estFor, v=est.dataset.est;
