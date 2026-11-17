@@ -8,7 +8,7 @@ window.CGDRAW = (function(){
 
   const FIG21 = {
   "id": "fig21",
-  "title": "Sistema de purificación",
+  "title": "Sistema",
   "cite": "Vol. VI p. 359, Operation Manual 1, Fig. 2-1 (página impresa 2-1)",
   "image": "assets/diagrams/fig21.png",
   "display": [
@@ -585,7 +585,7 @@ window.CGDRAW = (function(){
   "fig21": {
     "id": "fig21",
     "section": "s11",
-    "title": "Sistema de purificación",
+    "title": "Sistema",
     "cite": "Vol. VI p. 359, Operation Manual 1, Fig. 2-1 (página impresa 2-1)",
     "image": "assets/diagrams/fig21.png",
     "primary": true
@@ -638,12 +638,12 @@ window.CGDRAW = (function(){
   "water": {
     "id": "water",
     "section": "s12",
-    "title": "Distribuidor de agua 701–711",
-    "cite": "Vol. VI p. 20–21, S206348 / SG400301 (ítems 701–711)",
+    "title": "Distribuidor de agua",
+    "cite": "Vol. VI p. 20–21, S206348 / SG400301",
     "pages": [
       {
         "id": "vshaft_asm",
-        "title": "Eje vertical S206348 (701–711 arriba)",
+        "title": "Eje vertical S206348",
         "cite": "Vol. VI p. 20, S206348",
         "image": "assets/diagrams/vshaft_asm.png"
       },
@@ -784,7 +784,7 @@ window.CGDRAW = (function(){
   CATALOG.fig21.note_en = FIG21.note_en;
   CATALOG.fig21.note_es = FIG21.note_es;
   CATALOG.fig21.image = FIG21.image;
-  CATALOG.fig21.legHead = "Leyenda (Fig. 2-1) · English / español";
+  CATALOG.fig21.legHead = "Leyenda";
 
   const TAGS = {};
   function indexHots(list){

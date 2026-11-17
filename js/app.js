@@ -253,7 +253,6 @@ function renderHome(){
     unitBar(true)+
     `<div class="main"><div class="pad">
       <section class="hero">
-        <div class="lede">Visita previa al overhaul de las dos unidades ex Zanzibar 4.7 MW.</div>
         <div class="hero-stats">
           <div class="hero-ring">${ringSVG(p.pct,88)}<div class="rp"><b>${p.pct}%</b><span>${p.a}/${p.t}</span></div></div>
           <div class="stat-rows">
@@ -328,7 +327,7 @@ function renderSection(sid, view, dwg, groupFilter, onlyPend){
 
   const viewChips = tile.hasPlan ? `<div class="chip-row">
     ${sid==="s11"?`
-      <button class="chip ${dwg==="fig21"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/fig21">Sistema de purificación</button>
+      <button class="chip ${dwg==="fig21"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/fig21">Sistema</button>
       <button class="chip ${dwg==="hdzzb01"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb01">Flujo HFO</button>
       <button class="chip ${dwg==="hdzzb03"&&view==="plano"?"on":""}" data-go="#/seccion/s11/plano/hdzzb03">Flujo LO</button>`:""}
     ${sid==="s3"?`
@@ -336,7 +335,7 @@ function renderSection(sid, view, dwg, groupFilter, onlyPend){
       <button class="chip ${dwg===(unit==="lo"?"tools_lo":"tools_hfo")&&view==="plano"?"on":""}" data-go="#/seccion/s3/plano/${unit==="lo"?"tools_lo":"tools_hfo"}">Lista</button>`:""}
     ${sid==="s12"?`
       <button class="chip ${dwg==="bowl"&&view==="plano"?"on":""}" data-go="#/seccion/s12/plano/bowl">Bowl</button>
-      <button class="chip ${dwg==="water"&&view==="plano"?"on":""}" data-go="#/seccion/s12/plano/water">Agua 701–711</button>
+      <button class="chip ${dwg==="water"&&view==="plano"?"on":""}" data-go="#/seccion/s12/plano/water">Agua</button>
       <button class="chip ${dwg==="hshaft"&&view==="plano"?"on":""}" data-go="#/seccion/s12/plano/hshaft">Eje hor. / freno</button>
       <button class="chip ${dwg==="pump"&&view==="plano"?"on":""}" data-go="#/seccion/s12/plano/pump">Bomba GP20G</button>
       <button class="chip ${dwg==="frame"&&view==="plano"?"on":""}" data-go="#/seccion/s12/plano/frame">Bastidor</button>`:""}
@@ -859,19 +858,23 @@ function renderDiagramas(dwg){
   dwgFam=""; dwgPage=0;
   const skip=new Set(["booster","tools_hfo","tools_lo"]);
   const list=Object.values(DW.CATALOG).filter(d=>d && d.id && !skip.has(d.id));
+  function dwgThumb(id){
+    const src = asset("assets/diagrams/thumbs/"+id+".png");
+    return `<span class="thumb"><img src="${esc(src)}" alt="" width="480" height="384"></span>`;
+  }
   const cards=list.map(d=>`
-    <button type="button" class="tile" data-go="#/diagramas/${d.id}">
-      <span class="ico">${ICO.draw}</span>
+    <button type="button" class="tile dwg-card" data-go="#/diagramas/${d.id}">
+      ${dwgThumb(d.id)}
       <h2>${esc(d.title)}</h2>
     </button>`).join("")+`
-    <button type="button" class="tile" data-go="#/diagramas/tools">
-      <span class="ico">${ICO.draw}</span>
+    <button type="button" class="tile dwg-card" data-go="#/diagramas/tools">
+      ${dwgThumb("tools")}
       <h2>Herramientas especiales</h2>
     </button>`;
   document.getElementById("app").innerHTML =
     topbar({title:"Diagramas interactivos", kicker:"Caribbean Glass  ·  Samgong SELFJECTOR"})+
     `<div class="main"><div class="pad">
-      <div class="grid">${cards}</div>
+      <div class="grid dwg-grid">${cards}</div>
     </div></div>`+tabbar("diagramas");
 }
 

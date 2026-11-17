@@ -1,4 +1,4 @@
-const CACHE = "cg-levantamiento-v5-4";
+const CACHE = "cg-levantamiento-v5-5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -106,7 +106,16 @@ const ASSETS = [
   "./assets/diagrams/tools_lo_cover.png",
   "./assets/diagrams/vshaft_asm.png",
   "./assets/diagrams/water-distributor.jpg",
-  "./assets/diagrams/water_list.png"
+  "./assets/diagrams/water_list.png",
+  "./assets/diagrams/thumbs/fig21.png",
+  "./assets/diagrams/thumbs/hdzzb01.png",
+  "./assets/diagrams/thumbs/hdzzb03.png",
+  "./assets/diagrams/thumbs/bowl.png",
+  "./assets/diagrams/thumbs/water.png",
+  "./assets/diagrams/thumbs/hshaft.png",
+  "./assets/diagrams/thumbs/pump.png",
+  "./assets/diagrams/thumbs/frame.png",
+  "./assets/diagrams/thumbs/tools.png"
 ];
 self.addEventListener("install", e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
