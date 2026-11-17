@@ -820,6 +820,16 @@ window.CGDRAW = (function(){
     return false;
   }
 
+  function stripLegendPrefix(text, tag){
+    if(!text) return "";
+    let s=String(text).trim();
+    const t=String(tag||"").trim();
+    if(!t) return s;
+    if(s.toLowerCase()===t.toLowerCase()) return "";
+    const esc=t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    s=s.replace(new RegExp("^"+esc+"\\s*[·•⋅●—–\\-:|]\\s*","i"), "").trim();
+    return s;
+  }
   function cleanDesc(s, tag){
     if(!s) return "";
     let x=String(s);
@@ -861,11 +871,14 @@ window.CGDRAW = (function(){
       const hid=hiddenFor(h, unit);
       const rid = r.maps || h.maps || r.id;
       const resolved = rid ? resolveHot({maps:rid,id:r.id}, unit) : "";
-      const es = cleanDesc(r.es||"", r.tag||"");
+      const tag=r.tag||"";
+      const en = stripLegendPrefix(r.en||"", tag);
+      const es = stripLegendPrefix(cleanDesc(r.es||"", tag), tag);
       const attrs = resolved ? `data-id="${esc(resolved)}" data-hot="${esc(r.id||"")}"` : "";
       const cls = hid ? "off" : "";
+      const enH = en ? `<span class="en">${esc(en)}</span>` : "";
       const esH = es ? `<span class="es">${esc(es)}</span>` : "";
-      return `<tr class="${cls}" ${attrs}><td class="tag">${esc(r.tag)}</td><td><span class="en">${esc(r.en)}</span>${esH}</td></tr>`;
+      return `<tr class="${cls}" ${attrs}><td class="tag">${esc(tag)}</td><td>${enH}${esH}</td></tr>`;
     }).join("");
     return `<table class="leg-table"><thead><tr><th>N.º</th><th>${esc(head)}</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
