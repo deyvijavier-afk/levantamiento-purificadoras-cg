@@ -1335,6 +1335,8 @@ const CGSync = window.CGSync = {
       refreshChrome();
       return;
     }
+    const dlg=document.getElementById("sync-pin-dlg");
+    if(dlg) dlg.hidden=true;
     if(!navigator.onLine){
       this._meta.err="Sin conexión";
       this.saveMeta(); refreshChrome();
@@ -1464,7 +1466,7 @@ const CGSync = window.CGSync = {
       try{
         const arr=await photoList(ph.itemId);
         const rec=arr.find(p=>p.id===ph.id && p.data && !p.deleted);
-        if(!rec) continue;
+        if(!rec){ stillAdd.push(ph); continue; }
         await this.api("/photos", {method:"POST", body:JSON.stringify({itemId:ph.itemId, id:ph.id, t:rec.t||ph.t, data:rec.data})});
       }catch(e){ stillAdd.push(ph); }
     }
