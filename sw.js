@@ -1,4 +1,4 @@
-const CACHE = "cg-levantamiento-v5-8";
+const CACHE = "cg-levantamiento-v5-9";
 const ASSETS = [
   "./",
   "./index.html",
@@ -118,7 +118,7 @@ const ASSETS = [
   "./assets/diagrams/thumbs/tools.png"
 ];
 self.addEventListener("install", e=>{
-  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(u=>new Request(u,{cache:"reload"})))).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate", e=>{
   e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
@@ -126,16 +126,25 @@ self.addEventListener("activate", e=>{
 self.addEventListener("fetch", e=>{
   const req=e.request;
   if(req.method!=="GET") return;
+  const url=new URL(req.url);
+  if(url.origin!==location.origin || url.pathname.includes("/api/")) return;
+  const fresh = req.mode==="navigate" || /\.(html|js|css|webmanifest|json)$/.test(url.pathname) || url.pathname.endsWith("/");
+  if(fresh){
+    e.respondWith(
+      fetch(req,{cache:"no-cache"}).then(res=>{
+        if(res.ok){ const copy=res.clone(); caches.open(CACHE).then(c=>c.put(req, copy)); }
+        return res;
+      }).catch(()=>caches.match(req).then(c=>c||caches.match("./index.html")))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(req).then(cached=>{
       if(cached) return cached;
       return fetch(req).then(res=>{
-        const copy=res.clone();
-        if(res.ok && (new URL(req.url).origin===location.origin)){
-          caches.open(CACHE).then(c=>c.put(req, copy));
-        }
+        if(res.ok){ const copy=res.clone(); caches.open(CACHE).then(c=>c.put(req, copy)); }
         return res;
-      }).catch(()=>cached);
+      });
     })
   );
 });

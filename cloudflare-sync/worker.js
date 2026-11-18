@@ -228,6 +228,7 @@ async function proxyPwa(request) {
   const headers = new Headers(res.headers);
   headers.delete("content-security-policy");
   headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Cache-Control", "no-cache");
   return new Response(res.body, { status: res.status, headers: headers });
 }
 

@@ -1207,7 +1207,9 @@ document.addEventListener("keydown", ev=>{ if(ev.key==="Escape") closeSheet(); }
 
 window.addEventListener("hashchange", route);
 if("serviceWorker" in navigator && location.protocol.startsWith("http") && !window.CG_ASSETS){
-  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(r=>{r.update().catch(()=>{});}).catch(()=>{});
+  let swReloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(swReloaded) return; swReloaded=true; location.reload(); });
 }
 
 
