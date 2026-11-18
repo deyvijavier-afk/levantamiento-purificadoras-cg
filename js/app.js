@@ -47,9 +47,22 @@ function migrate(){
 }
 let state = migrate();
 let unit = state._unit || "hfo";
+const TS_STORE = STORE + "-ts";
+let stateTs = (function(){ try{ return JSON.parse(localStorage.getItem(TS_STORE)||"{}"); }catch(e){ return {}; } })();
+function saveTs(){ localStorage.setItem(TS_STORE, JSON.stringify(stateTs)); }
+function touchTs(k, t){ stateTs[k] = (t==null?Date.now():t); saveTs(); }
+(function stampExisting(){
+  let n=0;
+  Object.keys(state).forEach(k=>{
+    if(k==="_demo") return;
+    if(!stateTs[k]){ stateTs[k]=Date.now(); n++; }
+  });
+  if(unit && !stateTs._unit){ stateTs._unit=Date.now(); n++; }
+  if(n) saveTs();
+})();
 function save(){ state._unit = unit; localStorage.setItem(STORE, JSON.stringify(state)); }
 function val(k, def){ const v=state[k]; return v===undefined||v===null? (def||""):v; }
-function setVal(k,v){ state[k]=v; save(); refreshChrome(); }
+function setVal(k,v){ state[k]=v; touchTs(k); save(); if(window.CGSync) CGSync.onField(k); refreshChrome(); }
 
 /* ---------- index of items ---------- */
 const ITEM = {};
@@ -207,6 +220,17 @@ function ringSVG(pct, size){
       stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${d.toFixed(2)}"
       transform="rotate(-90 ${size/2} ${size/2})"/></svg>`;
 }
+function syncBarHTML(){
+  const st = window.CGSync ? CGSync.status() : {text:"Sin sincronizar", kind:""};
+  const busy = !!(window.CGSync && CGSync.busy);
+  return `<div class="syncbar">
+    <button type="button" class="sync-btn${busy?" busy":""}" id="btn-sync" ${busy?"disabled":""} aria-label="Sincronizar">
+      <svg class="sync-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.2-5.5"/><path d="M20 5v4h-4"/></svg>
+      <span>Sincronizar</span>
+    </button>
+    <span class="sync-meta${st.kind?" "+st.kind:""}" id="sync-meta">${esc(st.text)}</span>
+  </div>`;
+}
 function topbar(opts){
   const p=progressAll();
   return `<header class="topbar">
@@ -216,7 +240,7 @@ function topbar(opts){
       <h1>${opts.title||"Purificadoras Samgong"}</h1>
     </div>
     <div class="ring-wrap" title="Progreso">${ringSVG(p.pct,44)}<div class="rp">${p.pct}%</div></div>
-  </header>`;
+  </header>`+syncBarHTML();
 }
 function unitBar(show){
   if(!show) return "";
@@ -235,7 +259,15 @@ function tabbar(cur){
 function refreshChrome(){
   const el=document.querySelector(".ring-wrap");
   if(el){ const p=progressAll(); el.innerHTML=ringSVG(p.pct,44)+`<div class="rp">${p.pct}%</div>`; }
-  /* update tile bars if on home without full rerender is harder; ok on next paint */
+  const st = window.CGSync ? CGSync.status() : null;
+  const sm=document.getElementById("sync-meta");
+  if(sm && st){ sm.textContent=st.text; sm.className="sync-meta"+(st.kind?(" "+st.kind):""); }
+  const btn=document.getElementById("btn-sync");
+  if(btn && window.CGSync){
+    const busy=!!CGSync.busy;
+    btn.disabled=busy;
+    btn.classList.toggle("busy", busy);
+  }
 }
 
 /* ---------- home ---------- */
@@ -798,13 +830,17 @@ async function addPhoto(id, file){
   const c=document.createElement("canvas"); c.width=w; c.height=h;
   c.getContext("2d").drawImage(bmp,0,0,w,h);
   const data=c.toDataURL("image/jpeg",0.72);
-  const arr=await photoList(id); arr.push({t:Date.now(), data});
+  const t=Date.now();
+  const idPhoto=t.toString(36)+"-"+Math.random().toString(36).slice(2,8);
+  const arr=await photoList(id); arr.push({id:idPhoto, t, data});
   await photoSet(id, arr);
+  if(window.CGSync) CGSync.onPhotoAdd(id, idPhoto);
 }
 async function renderThumbs(id, el){
   if(!el) return;
   const arr=await photoList(id);
-  el.innerHTML=arr.map((p,i)=>`<img src="${p.data}" alt="foto ${i+1}" data-del="${id}:${i}">`).join("");
+  const vis=arr.filter(p=>p && p.data && !p.deleted);
+  el.innerHTML=vis.map((p,i)=>`<img src="${p.data}" alt="foto ${i+1}" data-del="${id}:${p.id||i}">`).join("");
   el.querySelectorAll("img").forEach(img=>{
     img.addEventListener("click",()=>{
       const lb=document.getElementById("lb"); if(!lb) return;
@@ -1001,6 +1037,10 @@ function route(){
 }
 
 document.addEventListener("click", ev=>{
+  const syncBtn=ev.target.closest("#btn-sync");
+  if(syncBtn){ ev.preventDefault(); if(window.CGSync) CGSync.sync({manual:true}); return; }
+  const pinCancel=ev.target.closest("[data-pin-cancel]");
+  if(pinCancel){ ev.preventDefault(); const dlg=document.getElementById("sync-pin-dlg"); if(dlg) dlg.hidden=true; return; }
   const pageBtn=ev.target.closest("[data-page]");
   if(pageBtn && pageBtn.closest("[data-pager]")){
     ev.preventDefault();
@@ -1013,7 +1053,7 @@ document.addEventListener("click", ev=>{
   if(goEl && goEl.getAttribute("data-go") && !goEl.disabled){ ev.preventDefault(); go(goEl.getAttribute("data-go")); return; }
   const u=ev.target.closest("[data-unit]");
   if(u){
-    unit=u.dataset.unit; save();
+    unit=u.dataset.unit; touchTs("_unit"); save(); if(window.CGSync) CGSync.onField("_unit");
     const r=parseHash();
     if(r.parts[0]==="diagramas" && r.parts[1] && (r.parts[1]==="tools"||r.parts[1]==="tools_hfo"||r.parts[1]==="tools_lo")){
       const next="#/diagramas/tools";
@@ -1170,6 +1210,279 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http") && !wind
   navigator.serviceWorker.register("./sw.js").catch(()=>{});
 }
 
+
+/* ---------- cross-device sync (Cloudflare Worker) ---------- */
+const SYNC_API = "https://levantamiento.cnergyconsultant.com/api";
+const PIN_KEY = "cg-sync-pin";
+const DEVICE_KEY = "cg-sync-device";
+const OUTBOX_KEY = "cg-sync-outbox";
+const SYNC_META_KEY = "cg-sync-meta";
+
+function uuid4(){
+  const a=new Uint8Array(16); crypto.getRandomValues(a);
+  a[6]=(a[6]&0x0f)|0x40; a[8]=(a[8]&0x3f)|0x80;
+  const h=[...a].map(b=>b.toString(16).padStart(2,"0")).join("");
+  return h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20);
+}
+function loadJSON(key, def){ try{ const v=JSON.parse(localStorage.getItem(key)||"null"); return v==null?def:v; }catch(e){ return def; } }
+
+const CGSync = window.CGSync = {
+  busy:false,
+  _timer:null,
+  _meta: loadJSON(SYNC_META_KEY, {}),
+  device: (function(){
+    let d=localStorage.getItem(DEVICE_KEY);
+    if(!d){ d=uuid4(); localStorage.setItem(DEVICE_KEY, d); }
+    return d;
+  })(),
+  pin(){ return localStorage.getItem(PIN_KEY)||""; },
+  setPin(v){ if(v) localStorage.setItem(PIN_KEY, v); },
+  outbox(){ return loadJSON(OUTBOX_KEY, {fields:{}, photosAdd:[], photosDel:[]}); },
+  saveOutbox(o){ localStorage.setItem(OUTBOX_KEY, JSON.stringify(o)); },
+  saveMeta(){ localStorage.setItem(SYNC_META_KEY, JSON.stringify(this._meta)); },
+  status(){
+    if(this.busy) return {text:"Sincronizando…", kind:""};
+    if(!navigator.onLine) return {text: this._fmt(this._meta.at, "Sin conexión"), kind:"err"};
+    if(this._meta.err) return {text: this._fmt(this._meta.at, this._meta.err), kind:"err"};
+    if(this._meta.at) return {text: this._fmt(this._meta.at, null), kind:"ok"};
+    if(!this.pin()) return {text:"Toca Sincronizar e introduce el PIN", kind:""};
+    return {text:"Sin sincronizar", kind:""};
+  },
+  _fmt(at, err){
+    if(!at && !err) return err||"Sin sincronizar";
+    const when = at ? new Date(at).toLocaleString("es-DO",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}) : "";
+    if(err && when) return err+" · "+when;
+    if(err) return err;
+    return "Última: "+when;
+  },
+  onField(k){
+    if(!k) return;
+    const o=this.outbox();
+    o.fields[k]={v:state[k], t:stateTs[k]||Date.now(), d:this.device};
+    this.saveOutbox(o);
+    this.schedule();
+  },
+  onPhotoAdd(itemId, photoId){
+    const o=this.outbox();
+    o.photosAdd=o.photosAdd.filter(p=>!(p.itemId===itemId&&p.id===photoId));
+    o.photosAdd.push({itemId, id:photoId, t:Date.now()});
+    this.saveOutbox(o);
+    this.schedule();
+  },
+  onPhotoDel(itemId, photoId){
+    const o=this.outbox();
+    o.photosAdd=o.photosAdd.filter(p=>!(p.itemId===itemId&&p.id===photoId));
+    o.photosDel=o.photosDel.filter(p=>!(p.itemId===itemId&&p.id===photoId));
+    o.photosDel.push({itemId, id:photoId, t:Date.now()});
+    this.saveOutbox(o);
+    this.schedule();
+  },
+  schedule(){
+    clearTimeout(this._timer);
+    this._timer=setTimeout(()=>{ this.sync({manual:false}); }, 1200);
+  },
+  ensurePinDialog(){
+    if(document.getElementById("sync-pin-dlg")) return;
+    const d=document.createElement("div");
+    d.id="sync-pin-dlg";
+    d.className="sync-dlg";
+    d.hidden=true;
+    d.innerHTML=`<form class="panel" id="sync-pin-form" autocomplete="off">
+      <h2>PIN de sincronización</h2>
+      <p>El mismo PIN en todos los dispositivos de este levantamiento.</p>
+      <input type="password" name="pin" id="sync-pin-input" required minlength="4" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="actions">
+        <button type="button" class="cancel" data-pin-cancel>Cancelar</button>
+        <button type="submit" class="ok">Guardar y sincronizar</button>
+      </div>
+    </form>`;
+    document.body.appendChild(d);
+    d.addEventListener("click", ev=>{ if(ev.target===d) d.hidden=true; });
+    document.getElementById("sync-pin-form").addEventListener("submit", ev=>{
+      ev.preventDefault();
+      const inp=document.getElementById("sync-pin-input");
+      const v=(inp.value||"").trim();
+      if(v.length<4) return;
+      this.setPin(v);
+      inp.value="";
+      d.hidden=true;
+      this.sync({manual:true});
+    });
+  },
+  askPin(){
+    this.ensurePinDialog();
+    const d=document.getElementById("sync-pin-dlg");
+    d.hidden=false;
+    const inp=document.getElementById("sync-pin-input");
+    if(inp){ inp.value=""; setTimeout(()=>inp.focus(), 50); }
+  },
+  async api(path, opts){
+    const pin=this.pin();
+    const headers=Object.assign({"X-Sync-Pin":pin}, (opts&&opts.headers)||{});
+    if(opts&&opts.body && typeof opts.body==="string") headers["Content-Type"]="application/json";
+    const res=await fetch(SYNC_API+path, Object.assign({credentials:"omit"}, opts||{}, {headers}));
+    if(res.status===401){ const err=new Error("auth"); err.code="auth"; throw err; }
+    if(!res.ok){ const err=new Error("http"); err.code="http"; err.status=res.status; throw err; }
+    const ct=res.headers.get("Content-Type")||"";
+    if(ct.indexOf("application/json")>=0) return res.json();
+    return res;
+  },
+  async sync(opts){
+    const manual=!!(opts&&opts.manual);
+    if(this.busy) return;
+    if(!this.pin()){
+      if(manual) this.askPin();
+      refreshChrome();
+      return;
+    }
+    if(!navigator.onLine){
+      this._meta.err="Sin conexión";
+      this.saveMeta(); refreshChrome();
+      return;
+    }
+    this.busy=true; refreshChrome();
+    let viewChanged=false;
+    try{
+      const remote=await this.api("/pull");
+      viewChanged = await this.mergePull(remote) || viewChanged;
+      await this.flush(remote);
+      this._meta.at=Date.now();
+      this._meta.err="";
+      this.saveMeta();
+    }catch(e){
+      if(e && e.code==="auth"){
+        this._meta.err="PIN incorrecto";
+        if(manual) this.askPin();
+      }else if(!navigator.onLine){
+        this._meta.err="Sin conexión";
+      }else{
+        this._meta.err="Error al sincronizar";
+      }
+      this.saveMeta();
+    }
+    this.busy=false;
+    refreshChrome();
+    if(viewChanged){
+      const ae=document.activeElement;
+      const typing=ae && (ae.tagName==="TEXTAREA"||ae.tagName==="INPUT") && ae.id!=="sync-pin-input";
+      if(!typing) route();
+      else{
+        document.querySelectorAll("[data-thumbs]").forEach(el=> renderThumbs(el.dataset.thumbs, el));
+        const st=document.getElementById("sheet-thumbs");
+        if(st) renderThumbs(st.getAttribute("data-id")||"", st);
+      }
+    }
+  },
+  async mergePull(remote){
+    let changed=false;
+    const fields=(remote&&remote.fields)||{};
+    Object.keys(fields).forEach(k=>{
+      const rec=fields[k];
+      if(!rec) return;
+      const lt=stateTs[k]||0;
+      if(rec.t>lt){
+        if(rec.v==null){ if(k in state){ delete state[k]; changed=true; } }
+        else if(state[k]!==rec.v){ state[k]=rec.v; changed=true; }
+        stateTs[k]=rec.t;
+        if(k==="_unit" && rec.v) unit=rec.v;
+      }
+    });
+    if(changed){ save(); saveTs(); }
+
+    const photos=(remote&&remote.photos)||{};
+    const itemIds=Object.keys(photos);
+    for(const itemId of itemIds){
+      const rem=photos[itemId]||[];
+      const arr=await photoList(itemId);
+      const byId={};
+      arr.forEach(p=>{
+        if(!p.id && p.t) p.id="p"+p.t;
+        if(p.id) byId[p.id]=p;
+      });
+      let pChanged=false;
+      for(const m of rem){
+        const cur=byId[m.id];
+        if(m.deleted){
+          if(!cur){ arr.push({id:m.id, t:m.t, deleted:true}); pChanged=true; }
+          else if(!cur.deleted && (m.t>=(cur.t||0))){ cur.deleted=true; cur.t=m.t; pChanged=true; changed=true; }
+          continue;
+        }
+        if(!cur || (!cur.data && !cur.deleted) || ((cur.t||0)<m.t && !cur.deleted)){
+          try{
+            const res=await this.api("/photos/"+encodeURIComponent(itemId)+"/"+encodeURIComponent(m.id));
+            const blob=await res.blob();
+            const data=await new Promise((resolve,reject)=>{
+              const fr=new FileReader();
+              fr.onload=()=>resolve(fr.result);
+              fr.onerror=reject;
+              fr.readAsDataURL(blob);
+            });
+            if(cur){ cur.data=data; cur.t=m.t; cur.deleted=false; }
+            else arr.push({id:m.id, t:m.t, data});
+            pChanged=true; changed=true;
+          }catch(e){ /* leave for next pass */ }
+        }
+      }
+      if(pChanged) await photoSet(itemId, arr);
+    }
+    return changed;
+  },
+  async flush(remote){
+    const o=this.outbox();
+    const remoteFields=(remote&&remote.fields)||{};
+    const toPush=[];
+    const seen=new Set();
+    Object.keys(o.fields||{}).forEach(k=>{
+      const rec=o.fields[k];
+      const rt=(remoteFields[k]&&remoteFields[k].t)||0;
+      if((rec.t||0)>=rt) toPush.push({k, v:rec.v, t:rec.t, d:this.device});
+      seen.add(k);
+    });
+    Object.keys(state).forEach(k=>{
+      if(seen.has(k) || k==="_demo") return;
+      const lt=stateTs[k]||0;
+      const rt=(remoteFields[k]&&remoteFields[k].t)||0;
+      if(lt>rt || (lt===0 && rt===0 && state[k]!=null && !(k in remoteFields))){
+        const t=lt||Date.now();
+        if(!lt){ stateTs[k]=t; }
+        toPush.push({k, v:state[k], t, d:this.device});
+      }
+    });
+    if("_unit" in state === false && unit){
+      const lt=stateTs._unit||0;
+      const rt=(remoteFields._unit&&remoteFields._unit.t)||0;
+      if(lt>rt || (rt===0 && !("_unit" in remoteFields))){
+        const t=lt||Date.now();
+        toPush.push({k:"_unit", v:unit, t, d:this.device});
+      }
+    }
+    if(toPush.length){
+      await this.api("/push", {method:"POST", body:JSON.stringify({fields:toPush, device:this.device})});
+    }
+    const stillAdd=[];
+    for(const ph of (o.photosAdd||[])){
+      try{
+        const arr=await photoList(ph.itemId);
+        const rec=arr.find(p=>p.id===ph.id && p.data && !p.deleted);
+        if(!rec) continue;
+        await this.api("/photos", {method:"POST", body:JSON.stringify({itemId:ph.itemId, id:ph.id, t:rec.t||ph.t, data:rec.data})});
+      }catch(e){ stillAdd.push(ph); }
+    }
+    const stillDel=[];
+    for(const ph of (o.photosDel||[])){
+      try{
+        await this.api("/photos/delete", {method:"POST", body:JSON.stringify(ph)});
+      }catch(e){ stillDel.push(ph); }
+    }
+    this.saveOutbox({fields:{}, photosAdd:stillAdd, photosDel:stillDel});
+    if(toPush.length) saveTs();
+  }
+};
+
+window.addEventListener("focus", ()=>{ CGSync.sync({manual:false}); });
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") CGSync.sync({manual:false}); });
+window.addEventListener("online", ()=>{ CGSync.sync({manual:false}); });
+
 /* demo seed for QA screenshots */
 function maybeDemo(){
   if(!/demo=1/.test(location.search+location.hash)) return;
@@ -1182,6 +1495,7 @@ function maybeDemo(){
 
 maybeDemo();
 route();
+setTimeout(()=>{ if(window.CGSync && CGSync.pin()) CGSync.sync({manual:false}); }, 400);
 (function(){
   const r=parseHash();
   const sh=r.q.get("sheet");
