@@ -219,7 +219,7 @@ async function handlePhotoGet(req, env, itemId, id) {
 async function proxyPwa(request) {
   const url = new URL(request.url);
   const target = PWA_BASE + (url.pathname === "/" ? "/index.html" : url.pathname) + url.search;
-  const init = { method: request.method, redirect: "follow", headers: new Headers() };
+  const init = { method: request.method, redirect: "follow", headers: new Headers(), cache: "no-store" };
   const accept = request.headers.get("Accept");
   const acceptEnc = request.headers.get("Accept-Encoding");
   if (accept) init.headers.set("Accept", accept);
