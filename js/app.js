@@ -895,7 +895,7 @@ function renderDiagramas(dwg){
   const skip=new Set(["booster","tools_hfo","tools_lo"]);
   const list=Object.values(DW.CATALOG).filter(d=>d && d.id && !skip.has(d.id));
   function dwgThumb(id){
-    const src = asset("assets/diagrams/thumbs/"+id+".svg");
+    const src = asset("assets/diagrams/thumbs/"+id+".png");
     return `<span class="thumb"><img src="${esc(src)}" alt="" width="200" height="160"></span>`;
   }
   const cards=list.map(d=>`
